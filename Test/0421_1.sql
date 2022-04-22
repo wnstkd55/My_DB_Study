@@ -3,18 +3,18 @@ select max(salary) 최고액, min(salary) 최저액, sum(salary) 총액, round(avg(salar
 from employee;
 
 --2.각 담당업무 유형별로 급여 최고액, 최저액, 총액 및 평균액을 출력하시오. 컬럼의 별칭은 동일(최고액, 최저액, 총액, 평균)하게 지정하고 평균에 대해서는 정수로 반올림 하시오. 
-select dno,max(salary) 최고액, min(salary) 최저액, sum(salary) 총액, round(avg(salary)) 평균
+select job,max(salary) 최고액, min(salary) 최저액, sum(salary) 총액, round(avg(salary)) 평균
 from employee
-group by dno
-order by dno;
+group by job
+order by job;
 
 --3. count(*)함수를 사용하여 담당 업무가 동일한 사원수를 출력하시오. 
-select dno , count(dno)
+select job , count(job)
 from employee
-group by dno;
+group by job;
 
 --4.관리자 수를 나열 하시오. 컬럼의 별칭은 "관리자수" 로 나열 하시오. 
-select count(manager) 관리자수
+select count(manager) 관리자수      --count는 null을 포함하지 않는다.
 from employee;
 
 --5. 급여 최고액, 최저 급여액의 차액을 출력 하시오, 컬럼의 별칭은 "DIFFERENCE"로 지정하시오. 
@@ -48,7 +48,9 @@ round(avg(salary)) as "Salary"
 from employee
 group by dno;
 
-
+select dno 부서번호, count(dno) 사원수, round(avg(salary),2) 평균급여
+from employee
+group by dno;
 
 
 
