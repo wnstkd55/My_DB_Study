@@ -252,6 +252,7 @@ where manager = '7788';
 select e.ename 사원이름, m.ename 직속상관이름
 from employee e, employee m
 where e.eno = m.manager;
+
 --EQUI JOIN으로 SElf JOIN 을 처리
 select e.eno 사원번호, e.ename as "사원이름", m.eno 직속상관번호, m.ename as "직속상관이름"
 from employee e, employee m         --Self JOIN : 
