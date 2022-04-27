@@ -333,12 +333,187 @@ create table orders10(
 insert into orders10 values(1, '11111','유관순',5000,default,10);
 select * from orders10;
 
+create table emp_copy50
+as
+select * from employee;
 
+create table dept_copy50
+as
+select * from department;
 
+select * from emp_copy50;
+select * from dept_copy50;
 
+select * from user_constraints
+where table_name in ('EMPLOYEE','DEPARTMENT');
 
+-- 테이블을 복사하면 레코드만 복사가 된다. 테이블의 제약조건은 복사되어 오지않는다. 따라서 
+-- Alter table을 사용해서 제약조건을 걸어줘야된다.
+    -- (alter table 테이블이름 add constraint 제약조건이름 키이름(컬럼명))
+-- 원본 테이블에서 제약조건 확인하기( 테이블 이름은 대문자로 들어간다.)
+select * from user_constraints
+where table_name in ('EMPLOYEE','DEPARTMENT');
+--사본 테이블 제약조건 확인( 없다 )
+select * from user_constraints
+where table_name in ('EMP_COPY50','DEPT_COPY50');
 
+desc emp_copy50;
+desc dept_copy50;
 
+select * from emp_copy50;
+-- emp_copy50테이블에 eno => primary key 할당
+alter table emp_copy50
+add constraint PK_emp_copy50_eno PRIMARY KEY(eno);
+-- dept_copy50 테이블에 dno => primary key 할당
+alter table dept_copy50
+add constraint PK_dept_copy50_dno PRIMARY KEY(dno);
+--사본 테이블 제약조건 확인( primary key만 확인 가능 )
+select * from user_constraints
+where table_name in ('EMP_COPY50','DEPT_COPY50');
 
+-- foreign key 할당
+alter table emp_copy50
+add constraint FK_emp_copy50_dno_dept_copy50 foreign key(dno) references dept_copy50(dno);
 
+commit;
+--사본 테이블 제약조건 확인( primary key, foreign key 확인 가능 )
+select * from user_constraints
+where table_name in ('EMP_COPY50','DEPT_COPY50');
 
+-- NOT NULL 제약 조건 추가. (구문이 다르다, add대신에 modify를 사용)
+    --alter table 테이블명 modify 컬럼명 constraint 제약조건명 null or not null
+desc employee;
+desc emp_copy50; -- not null을 넣지 않았지만, primary key 제약조건을 할당( primary key 제약조건 : 널값이 없어야 한다.)
+desc department;
+desc dept_copy50; -- not null을 넣지 않았지만, primary key 제약조건을 할당( primary key 제약조건 : 널값이 없어야 한다.)
+
+    -- 기존의 null이 들어가 있는곳에는 not null컬럼으로 지정할 수 없다.
+    select ename from emp_copy50 where ename is not null;
+alter table emp_copy50
+modify ename constraint NN_emp_copy50_ename not null ;
+
+desc emp_copy50;
+
+    -- commission 컬럼에 not null 할당하기 ( commission에는 null값이 이미 존재함)
+    select * from emp_copy50;
+
+alter table emp_copy50
+modify commission constraint NN_emp_copy50_commission not null;         -- 오류발생 : 이미 null값이 있어서 
+
+-- null 값인경우 0으로 바꿔주고
+update emp_copy50
+set commission = 0
+where commission is null;
+
+-- commission 컬럼 not null로 제약조건 걸기
+alter table emp_copy50
+modify commission constraint NN_emp_copy50_commission not null;        
+
+-- Unique 제약조건 추가 : 컬럼에 중복된 값이 있으면 할당하지 못한다.
+-- 중복된 이름 찾기( count(*)를 통해서 중복된 갯수 세기)
+    -- 없기때문에 Unique 제약조건을 할수 있음!
+select ename, count(*)
+from emp_copy50
+group by ename
+having count(*) > 2;
+
+alter table emp_copy50
+add constraint UK_emp_copy50_ename unique (ename);
+
+-- 제약조건 확인
+select * from user_constraints
+where table_name = 'EMP_COPY50';
+
+-- check 제약조건 추가
+select * from emp_copy50;
+
+alter table emp_copy50
+add constraint CK_emp_copy50_salary check(salary>0 and salary < 10000);
+
+-- 제약조건 확인
+select * from user_constraints
+where table_name = 'EMP_COPY50';
+
+-- default 제약 조건 추가 < 제약조건이 아님 : 제약조건 이름을 할당할 수 없다. >
+    -- 값을 넣지 않을 경우 default로 설정된 값이 들어간다.
+alter table emp_copy50
+modify salary default 1000;
+
+desc emp_copy50;
+insert into emp_copy50 (eno, ename, commission) values (9999, 'JULI', 100);         -- salary에 default값이 나옴
+select * from emp_copy50;
+
+alter table emp_copy50
+modify hiredate default sysdate;
+
+insert into emp_copy50 values(8888,'JULIA',null,null,default,default,1500,null);
+
+/* 제약조건 제거 : Alter Table 테이블명 drop */
+
+-- Primary key 제거 : 테이블에 하나만 존재함.
+alter table emp_copy50      -- 오류 없이 제거됨.
+drop primary key;
+
+alter table dept_copy50     -- 오류 발생 : foreign key가 참조하고 있기때문(emp_copy50의 dno 컬럼이 참조하고있다)
+drop primary key;
+
+alter table dept_copy50     --foreign key를 먼저 제거하고 primary key가 제거됨.
+drop primary key cascade;    -- cascade => 강제
+
+select* from user_constraints
+where table_name in ('EMP_COPY50','DEPT_COPY50');
+
+-- not null 컬럼 제거하기 : 제약조건 이름으로 삭제
+alter table emp_copy50
+drop constraint NN_EMP_COPY50_ENAME;
+
+alter table emp_copy50
+drop constraint NN_EMP_COPY50_COMMISSION;
+
+-- Unique, check 제약조건 제거 <<제약조건 이름으로 제거>>
+alter table emp_copy50
+drop constraint UK_EMP_COPY50_ENAME;
+
+alter table emp_copy50
+drop constraint CK_EMP_COPY50_SALARY;
+
+-- default는 null 허용 컬럼은 default를 null로 세팅 : default 제약조건을 제거하는것.
+alter table emp_copy50
+modify hiredate default null;
+
+select * from emp_copy50;
+
+/* 제약 조건 disable / enable
+     - 제약조건을 잠시 중지시킴.
+     - 대량(BULK INSERT)으로 값을 테이블에 추가할때 부하가 많이 걸린다. disable ==> enable
+     - Index를 생성시 부하가 많이 걸린다.   disable ==> enable
+*/
+
+alter table dept_copy50
+add constraint PK_dept_copy50_dno Primary key(dno);
+
+alter table emp_copy50
+add constraint PK_emp_copy50_eno Primary key(eno);
+
+alter table emp_copy50
+add constraint FK_emp_copy50_dno foreign key(dno) references dept_copy50(dno);
+
+select* from user_constraints
+where table_name in ('EMP_COPY50','DEPT_COPY50');
+
+select * from emp_copy50;
+select * from dept_copy50;
+
+---- dno foreign key 비활성화
+alter table emp_copy50
+disable constraint FK_EMP_COPY50_DNO;
+insert into emp_copy50(eno, ename, dno) values(8989,'aaaa',50);
+
+insert into dept_copy50
+values(50,'HR','SEOUL');
+
+-- dno foreign key 활성화
+alter table emp_copy50
+enable constraint FK_EMP_COPY50_DNO;
+
+select * from dept_copy50;
