@@ -37,8 +37,8 @@ grant create table to usertest01;
                                 를 저장하는 공간. 관리자 계정에서 각 사용자별 테이블 스페이스를 확인.
     SYSTEM : DBA(관리자 계정에서만 접근 가능)
     
-    default_tablespace      :
-    temporary_tablespace    :
+    default_tablespace      : DataFile저장 : 객체가 저장되는 공간( 테이블, 뷰, 트리거, 인덱스.....)
+    temporary_tablespace    : LOG를 저장
 */
 
 select * from dba_users;        -- dba_ : sys (최고 관리자 계정에서 확인)
@@ -49,8 +49,17 @@ where username in ('HR','USERTEST01');
 
 -- 계정에게 테이블 스페이스 변경(SYSTEM ==> USERS) 변경
 alter user usertest01
-default tablespace users
-temporary tablespace temp;
+default tablespace users        -- DataFile저장 : 객체가 저장되는 공간( 테이블, 뷰, 트리거, 인덱스.....)
+temporary tablespace temp;      -- LOG를 저장 : DML(Insert, Update, Delete)
+                    -- LOG를 호칭할때 Transaction Log. 시스템의 문제 발생시 백업시점이 아니라 오류난 시점까지 복원하기위해서
+
+-- 테이블 스페이스 : 객체와 Log를 저장하는 물리적인 파일
+    -- DataFile : 객체를 저장하고 있다.(테이블, 뷰, 인덱스.....)
+    -- Log : Transaction Log를 저장.
+    -- DataFile과 Log파일은 물리적으로 다른 하드 공간에 저장해야 성능을 높일 수 있다.
+        -- RAID된 공간에 저장하면 성능을 높일 수 있다.
+
+
 
 -- 계정에게 Users 테이블 스페이스를 사용할 수 있는 공간 할당. (users 테이블 스페이스에 2mb 사용공간 할당)
 alter user usertest01
@@ -82,4 +91,36 @@ where username in ('HR','USERTEST02');
 -- 테이블 공간할당하기
 alter user usertest02
 quota 2m on users;
+/*
+    와인정보제공사이트
+    
+    계정명 : wine_account
+    암호 : 1234
+    
+    기본 테이블 스페이스 : WINE_DATAFILE     100MB, 100MB씩 증가, 무제한, <= A_HDD
+    임시 테이블 스페이스 : WINE_LOG          100MB, 100MB씩 증가, 1GB 제한 <= B_HDD
+    
+    테이블 10개 생성후 : 각 테이블의 값(레코드 : 3개씩 추가)
+    
+    
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

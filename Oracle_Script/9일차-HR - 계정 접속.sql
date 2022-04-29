@@ -14,8 +14,8 @@ start with 10;          -- 초기값
 -- 시퀀스의 정보를 출력하는 데이터 사전
 select * from user_sequences;
 
-select sample_seq.nextval from dual;    -- 시퀀스의 다음 값을 출력
-select sample_seq.currval from dual;    -- 현재 시퀀스의 값을 출력
+select sample_seq.nextval from dual;    -- 시퀀스의 다음 값을 출력( select 시퀀스명.nextval )
+select sample_seq.currval from dual;    -- 현재 시퀀스의 값을 출력( select 시퀀스명.currval
 
 --초기값 : 2, 증가값 :2
 create sequence sample_seq2
